@@ -1,19 +1,11 @@
-import numpy as np
+from PIL import Image
+import os, sys
 import cv2
-from matplotlib import pyplot as plt
+import numpy as np
+import matplotlib.pyplot as plt
+path1 = 'F:/RESEARCH/WHALE/MATCHING_TRIAL DATASET/PNGS/'   
+path2 = 'F:/RESEARCH/WHALE/MATCHING_TRIAL DATASET/PNGS2/'
 
-img1 = cv2.imread('F:/RESEARCH/WHALE/MATCHING_TRIAL DATASET/PNGS/NEW3.png',0)          # queryImage
-img2 = cv2.imread('F:/RESEARCH/WHALE/MATCHING_TRIAL DATASET/PNGS/NEW49.png',0) # trainImage
-#img3 = cv2.imread('F:/RESEARCH/WHALE/MATCHING_TRIAL DATASET/NEW40.jpg',0)
-
-height1, width1 = img1.shape[:2]
-height2, width2 = img2.shape[:2]
-
-#cv2.resize(img1, (int(width2*0.25),int(height2*0.25)))
-print img1.shape
-print img2.shape
-
-           
 def drawMatches(img1, kp1, img2, kp2, matches):
     """
     My own implementation of cv2.drawMatches as OpenCV 2.4.9
@@ -87,29 +79,59 @@ def drawMatches(img1, kp1, img2, kp2, matches):
     return out
 
 
-# Initiate ORB detector
-orb = cv2.ORB()
-surf=cv2.SURF()
 
-# find the keypoints and descriptors with ORB : GIVES KEYPOINTS AND DESCRIPTORS
-kp1, des1 = orb.detectAndCompute(img1,None)
-
-kp2, des2 = orb.detectAndCompute(img2,None)
-
-
-# create BFMatcher object
-bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-
-
-# Match descriptors.:GIVES LIST OF ALL MATCH FEATURES
-matches = bf.match(des1,des2)
-
-# Sort them in the order of their distance.
-matches = sorted(matches, key = lambda x:x.distance)
-print len(matches)
-# Draw first 10 matches.
-img3 = drawMatches(img1,kp1,img2,kp2,matches) #[:10]
-
-plt.imshow(img3),plt.show()
+listing_train = os.listdir(path1)
+listing_test=os.listdir(path2)
+for file1 in listing_train:
+    matchmaxlen=50
+    matchfile=""
     
-   
+    img1=cv2.imread(path1 + file1)
+    
+    for file2 in listing_test:
+        if(file2!=file1):
+            
+            img2=cv2.imread(path2+file2)
+            orb = cv2.ORB()
+            kp1, des1 = orb.detectAndCompute(img1,None)
+            kp2, des2 = orb.detectAndCompute(img2,None)
+            bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+            matches = bf.match(des2,des1)
+            #print len(matches)
+    # Sort them in the order of their distance.
+            matches = sorted(matches, key = lambda x:x.distance)
+            no_of_matches=len(matches)
+            if no_of_matches>matchmaxlen:
+                matchmaxlen=no_of_matches
+                matchfile=file2
+    #print("The matching features for "+ str(file1)+" are "+ str(matchmaxlen))
+    #print("The matching image is "+str(matchfile))
+    #img3 = drawMatches(img2,kp2,img1,kp1,matches) #[:10]
+
+    #plt.imshow(img3),plt.show()
+    print(file1,matchfile,matchmaxlen)
+
+
+
+
+
+
+
+
+
+
+    
+####print a,b
+##    rect = (10,10,a,b)
+##    cv2.grabCut(img,mask,rect,bgdModel,fgdModel,5,cv2.GC_INIT_WITH_RECT)
+##    mask2 = np.where((mask==2)|(mask==0),0,1).astype('uint8')
+##    img1 = img*mask2[:,:,np.newaxis]
+##    background=img1-img
+##    background[np.where((background > [0,0,0]).all(axis = 2))] =[255,255,255]
+##    final = background + img1
+##
+##
+##                                
+##    cv2.imwrite("NEW"+str(file),final)        
+
+

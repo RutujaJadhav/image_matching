@@ -83,34 +83,72 @@ def drawMatches(img1, kp1, img2, kp2, matches):
 listing_train = os.listdir(path1)
 listing_test=os.listdir(path2)
 for file1 in listing_train:
-    matchmaxlen=50
-    matchfile=""
-    
+    matchmaxlenORB=10
+    matchmaxlenSURF=5
+    matchmaxlenSIFT=5
+    matchfileSIFT=""
+    matchfileORB=""
+    matchfileSURF=""
     img1=cv2.imread(path1 + file1)
     
     for file2 in listing_test:
         if(file2!=file1):
-            
             img2=cv2.imread(path2+file2)
             orb = cv2.ORB()
-            kp1, des1 = orb.detectAndCompute(img1,None)
-            kp2, des2 = orb.detectAndCompute(img2,None)
-            bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-            matches = bf.match(des2,des1)
-            #print len(matches)
-    # Sort them in the order of their distance.
-            matches = sorted(matches, key = lambda x:x.distance)
-            no_of_matches=len(matches)
-            if no_of_matches>matchmaxlen:
-                matchmaxlen=no_of_matches
-                matchfile=file2
-    #print("The matching features for "+ str(file1)+" are "+ str(matchmaxlen))
-    #print("The matching image is "+str(matchfile))
-    #img3 = drawMatches(img2,kp2,img1,kp1,matches) #[:10]
+            surf=cv2.SURF()
+            sift=cv2.SIFT()
 
+            
+            kp1_ORB, des1_ORB = orb.detectAndCompute(img1,None)
+            kp2_ORB, des2_ORB = orb.detectAndCompute(img2,None)
+            bf_ORB = cv2.BFMatcher(cv2.NORM_HAMMING,crossCheck=True)
+            matches_ORB = bf_ORB.match(des2_ORB,des1_ORB)
+            matches_ORB = sorted(matches_ORB, key = lambda x:x.distance)
+            no_of_matches_ORB=len(matches_ORB)
+            #print (file1,file2,no_of_matches_ORB)
+            if no_of_matches_ORB>matchmaxlenORB:
+                matchmaxlenORB=no_of_matches_ORB
+                matchfileORB=file2
+
+                
+            kp1_SURF, des1_SURF = surf.detectAndCompute(img2,None)
+            kp2_SURF, des2_SURF = surf.detectAndCompute(img1,None)
+            bf_SURF = cv2.BFMatcher()
+            matches_SURF = bf_SURF.knnMatch(des2_SURF,des1_SURF,k=2)
+            good_SURF = []
+            for m,n in matches_SURF:
+                if m.distance < 0.75*n.distance:
+                    good_SURF.append([m])
+           # matches_SURF= sorted(matches_SURF, key = lambda x:x.distance)
+            no_of_matches_SURF=len(good_SURF)
+           # print (file1,file2,no_of_matches_SURF)
+            if no_of_matches_SURF>matchmaxlenSURF:
+                matchmaxlenSURF=no_of_matches_SURF
+                matchfileSURF=file2
+           
+            kp1_SIFT, des1_SIFT = sift.detectAndCompute(img2,None)
+            kp2_SIFT, des2_SIFT = sift.detectAndCompute(img1,None)
+            bf_SIFT = cv2.BFMatcher()
+            matches_SIFT = bf_SIFT.knnMatch(des2_SIFT,des1_SIFT,k=2)
+            good_SIFT = []
+            for m,n in matches_SIFT:
+                if m.distance < 0.75*n.distance:
+                    good_SIFT.append([m])
+            #print (file1,file2,len(good_SIFT))
+            #matches_SIFT= sorted(matches_SIFT, key = lambda x:x.distance)
+            no_of_matches_SIFT=len(good_SIFT)
+            if no_of_matches_SIFT>matchmaxlenSIFT:
+                matchmaxlenSIFT=no_of_matches_SIFT
+                matchfileSIFT=file2
+            
     #plt.imshow(img3),plt.show()
-    print(file1,matchfile,matchmaxlen)
-
+    print 
+    print "ORB " +str(file1)+" "+str(matchfileORB)+" "+str(matchmaxlenORB)
+  #  print "SURF"            
+  #  print(file1,matchfileSURF,matchmaxlenSURF)
+    print "SIFT " +str(file1)+" "+str(matchfileSIFT)+" "+str(matchmaxlenSIFT)
+    print "SURF " +str(file1)+" "+str(matchfileSURF)+" "+str(matchmaxlenSURF)
+    
 
 
 
